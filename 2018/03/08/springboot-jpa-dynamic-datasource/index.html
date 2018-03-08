@@ -104,23 +104,28 @@
 
 
   
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="SpringBoot,Jpa," />
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="「什么都略懂一点」">
-<meta property="og:url" content="https://linyongfu2013.github.io/index.html">
+<meta name="description" content="在大型应用程序中，配置主从数据库并使用读写分离是常见的设计模式。常用的实现方式是使用数据库中间件，此文介绍如何通过编写代码的方式实现多数据源的配置和动态切换。核心是使用Spring 内置的 AbstractRoutingDataSource 这个抽象类，它可以把多个数据源配置成一个Map，然后，根据不同的key返回不同的数据源。 环境介绍 SpringBoot 1.5.10.RELEASE MyS">
+<meta name="keywords" content="SpringBoot,Jpa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringBoot Jpa 实现多数据源动态切换">
+<meta property="og:url" content="https://linyongfu2013.github.io/2018/03/08/springboot-jpa-dynamic-datasource/index.html">
 <meta property="og:site_name" content="「什么都略懂一点」">
+<meta property="og:description" content="在大型应用程序中，配置主从数据库并使用读写分离是常见的设计模式。常用的实现方式是使用数据库中间件，此文介绍如何通过编写代码的方式实现多数据源的配置和动态切换。核心是使用Spring 内置的 AbstractRoutingDataSource 这个抽象类，它可以把多个数据源配置成一个Map，然后，根据不同的key返回不同的数据源。 环境介绍 SpringBoot 1.5.10.RELEASE MyS">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-03-08T08:51:14.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="「什么都略懂一点」">
+<meta name="twitter:title" content="SpringBoot Jpa 实现多数据源动态切换">
+<meta name="twitter:description" content="在大型应用程序中，配置主从数据库并使用读写分离是常见的设计模式。常用的实现方式是使用数据库中间件，此文介绍如何通过编写代码的方式实现多数据源的配置和动态切换。核心是使用Spring 内置的 AbstractRoutingDataSource 这个抽象类，它可以把多个数据源配置成一个Map，然后，根据不同的key返回不同的数据源。 环境介绍 SpringBoot 1.5.10.RELEASE MyS">
 
 
 
 
 
 
-  <link rel="canonical" href="https://linyongfu2013.github.io/"/>
+  <link rel="canonical" href="https://linyongfu2013.github.io/2018/03/08/springboot-jpa-dynamic-datasource/"/>
 
 
 
@@ -129,7 +134,7 @@
     sidebar: "",
   };
 </script>
-  <title>「什么都略懂一点」</title>
+  <title>SpringBoot Jpa 实现多数据源动态切换 | 「什么都略懂一点」</title>
   
 
 
@@ -176,8 +181,7 @@
     
   
 
-  <div class="container sidebar-position-right 
-  page-home">
+  <div class="container sidebar-position-right page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -267,9 +271,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -301,9 +305,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/03/08/springboot-jpa-dynamic-datasource/" itemprop="url">SpringBoot Jpa 实现多数据源动态切换</a></h1>
+          <h1 class="post-title" itemprop="name headline">SpringBoot Jpa 实现多数据源动态切换</h1>
         
 
         <div class="post-meta">
@@ -363,6 +365,11 @@
           
 
           
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv">阅读次数
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
 
           
 
@@ -381,9 +388,7 @@
       
 
       
-        
-          
-            <p>在大型应用程序中，配置主从数据库并使用读写分离是常见的设计模式。常用的实现方式是使用数据库中间件，此文介绍如何通过编写代码的方式实现多数据源的配置和动态切换。核心是使用Spring 内置的 <code>AbstractRoutingDataSource</code> 这个抽象类，它可以把多个数据源配置成一个Map，然后，根据不同的key返回不同的数据源。</p>
+        <p>在大型应用程序中，配置主从数据库并使用读写分离是常见的设计模式。常用的实现方式是使用数据库中间件，此文介绍如何通过编写代码的方式实现多数据源的配置和动态切换。核心是使用Spring 内置的 <code>AbstractRoutingDataSource</code> 这个抽象类，它可以把多个数据源配置成一个Map，然后，根据不同的key返回不同的数据源。</p>
 <h4 id="环境介绍"><a href="#环境介绍" class="headerlink" title="环境介绍"></a>环境介绍</h4><ul>
 <li>SpringBoot 1.5.10.RELEASE</li>
 <li>MySQL 5.7</li>
@@ -397,8 +402,6 @@
 <h4 id="编写切面实现动态切换"><a href="#编写切面实现动态切换" class="headerlink" title="编写切面实现动态切换"></a>编写切面实现动态切换</h4><p>日常工作中，通常是根据<code>Service</code> 层的方法签名，区分读写操作，最便捷的方式是使用 AOP 进行拦截：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">@Slf4j</span><br><span class="line">@Aspect</span><br><span class="line">@Component</span><br><span class="line">public class DynamicDataSourceAspect &#123;</span><br><span class="line"></span><br><span class="line">    @Pointcut(&quot;execution(* com.imooc.service..*.*(..))&quot;)</span><br><span class="line">    private void aspect() &#123;&#125;</span><br><span class="line"></span><br><span class="line">    @Around(&quot;aspect()&quot;)</span><br><span class="line">    public Object around(ProceedingJoinPoint joinPoint) throws Throwable &#123;</span><br><span class="line">        String method = joinPoint.getSignature().getName();</span><br><span class="line"></span><br><span class="line">        if (method.startsWith(&quot;find&quot;) || method.startsWith(&quot;select&quot;) || method.startsWith(&quot;query&quot;) || method</span><br><span class="line">                .startsWith(&quot;search&quot;)) &#123;</span><br><span class="line">            DataSourceContextHolder.setDataSource(&quot;slaveDataSource&quot;);</span><br><span class="line">            log.info(&quot;switch to slave datasource...&quot;);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            DataSourceContextHolder.setDataSource(&quot;masterDataSource&quot;);</span><br><span class="line">            log.info(&quot;switch to master datasource...&quot;);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        try &#123;</span><br><span class="line">            return joinPoint.proceed();</span><br><span class="line">        &#125;finally &#123;</span><br><span class="line">            log.info(&quot;清除 datasource router...&quot;);</span><br><span class="line">            DataSourceContextHolder.clear();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>至此，核心的代码和细节已经讲解结束，其余的实体类、<code>Repository</code>接口、Service 方法、测试用例等，可以参考我上传到 <a href="https://github.com/linyongfu2013/springboot-multi-datasource.git" target="_blank" rel="noopener">Github</a> 上的完整工程.</p>
 
-          
-        
       
     </div>
     
@@ -413,172 +416,38 @@
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://linyongfu2013.github.io/2018/01/30/使用mysqld_multi启动多个MySQL实例/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Reid Lin">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="「什么都略懂一点」">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/01/30/使用mysqld_multi启动多个MySQL实例/" itemprop="url">Mac 下使用 mysqld_multi 启动多个MySQL实例</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-30T17:03:49+08:00">2018-01-30</time>
-            
-
-            
-            
-
-            
-          </span>
-
+        <div class="post-tags">
           
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a></span>
-
-                
-                
-              
-            </span>
+            <a href="/tags/SpringBoot/" rel="tag"># SpringBoot</a>
           
-
+            <a href="/tags/Jpa/" rel="tag"># Jpa</a>
           
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2018/01/30/使用mysqld_multi启动多个MySQL实例/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/01/30/使用mysqld_multi启动多个MySQL实例/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
+      
 
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
+      
       
       
 
       
-        
-          <h4 id="环境介绍"><a href="#环境介绍" class="headerlink" title="环境介绍"></a>环境介绍</h4><ul>
-<li>Mac 系统为最新的 macOS High Sierra</li>
-<li>MySQL 是使用 Homebrew 安装的，版本是<code>mysql: stable 5.7.21 (bottled), devel 8.0.3-rc</code>.</li>
-<li>教程参考官网: <a href="https://dev.mysql.com/doc/refman/5.7/en/mysqld-multi.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/5.7/en/mysqld-multi.html</a></li>
-</ul>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/01/30/使用mysqld_multi启动多个MySQL实例/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/30/使用mysqld_multi启动多个MySQL实例/" rel="next" title="Mac 下使用 mysqld_multi 启动多个MySQL实例">
+                <i class="fa fa-chevron-left"></i> Mac 下使用 mysqld_multi 启动多个MySQL实例
+              </a>
+            
           </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
 
-    
+          <span class="post-nav-divider"></span>
 
-    
-
-    
-
-    <footer class="post-footer">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
       
 
       
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -588,14 +457,29 @@
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
           
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
 
         </div>
         
@@ -616,8 +500,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -696,6 +589,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#环境介绍"><span class="nav-number">1.</span> <span class="nav-text">环境介绍</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据源配置"><span class="nav-number">2.</span> <span class="nav-text">数据源配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#初始化数据源"><span class="nav-number">3.</span> <span class="nav-text">初始化数据源</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编写-JpaEntityManager-配置类"><span class="nav-number">4.</span> <span class="nav-text">编写 JpaEntityManager 配置类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编写动态保存数据源类型key的实现类"><span class="nav-number">5.</span> <span class="nav-text">编写动态保存数据源类型key的实现类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#实现AbstractRoutingDataSource"><span class="nav-number">6.</span> <span class="nav-text">实现AbstractRoutingDataSource</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编写切面实现动态切换"><span class="nav-number">7.</span> <span class="nav-text">编写切面实现动态切换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">8.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -830,6 +739,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.0.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.0.3"></script>
+
+
 
   
 
@@ -844,6 +757,23 @@
     <script id="dsq-count-scr" src="https://Reid.disqus.com/count.js" async></script>
   
 
+  
+    <script type="text/javascript">
+      var disqus_config = function () {
+        this.page.url = 'https://linyongfu2013.github.io/2018/03/08/springboot-jpa-dynamic-datasource/';
+        this.page.identifier = '2018/03/08/springboot-jpa-dynamic-datasource/';
+        this.page.title = 'SpringBoot Jpa 实现多数据源动态切换';
+      };
+      function loadComments () {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Reid.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      }
+      
+        loadComments();
+      
+    </script>
   
 
 
